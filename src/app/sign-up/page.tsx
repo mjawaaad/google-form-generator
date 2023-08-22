@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -27,11 +28,20 @@ const Signup = () => {
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/sign-up", {
-      method: "POST",
-      body: JSON.stringify(formData),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch("/api/sign-up", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      toast.success(`${data.message}`);
+    } catch (error: any) {
+      toast.error(`${error.message}`);
+    }
 
     // You can add your registration logic here
   };

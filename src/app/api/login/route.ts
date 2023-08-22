@@ -20,7 +20,7 @@ export const POST = async (request: NextRequest) => {
     const requestedUser = users[0];
 
     if (!requestedUser) {
-      throw new Error("User not found!");
+      throw new Error("User not found! Please sign up your account");
     }
 
     const isPasswordMatched = await bcrypt.compare(

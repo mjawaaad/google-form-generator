@@ -6,6 +6,7 @@ import * as jose from "jose";
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   let jwt = request.cookies.get("token")?.value;
+  const cookie = request.cookies.get("adminEmail")?.value;
 
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -27,5 +28,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/create-form/:path*"],
+  matcher: ["/create-form/:path*", "/get-form-responses/:path*"],
 };

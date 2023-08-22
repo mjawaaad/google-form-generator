@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Input from "@/components/shared/TextInput";
 import "@/app/globals.css";
 
@@ -9,24 +9,36 @@ import { FormControlLabel } from "@mui/material";
 import { Trash2, Copy, X, CheckSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "@/components/shared/Loader";
-
+import { usePathname } from "next/navigation";
+import { ToastContainer } from "react-toastify";
+import { setCookie } from "cookies-next";
+import dotenv from "dotenv";
 export interface IQuestion {
   title: string;
   type: string;
-  answer: string | boolean | number | null;
   options: string[];
 }
 
+dotenv.config();
 function FormGenerator() {
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [formDetails, setFormDetails] = useState({
     title: "",
     description: "",
   });
-
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [formId, setFormId] = useState(0);
 
-  console.log(formDetails);
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   const adjustTextareaHeight = (textarea: any) => {
     textarea.style.height = "auto";
@@ -48,10 +60,9 @@ function FormGenerator() {
   const addQuestion = (
     title: string,
     type: string,
-    answer: string | boolean | number | null,
     options: string[] = ["Option"]
   ) => {
-    setQuestions([...questions, { title, type, answer, options }]);
+    setQuestions([...questions, { title, type, options }]);
   };
 
   //Add option to your question
@@ -110,8 +121,6 @@ function FormGenerator() {
     });
   };
 
-  console.log(questions, "question");
-
   const sendForm = async () => {
     const formData = {
       questions,
@@ -119,19 +128,30 @@ function FormGenerator() {
     };
     try {
       setIsLoading(true);
+
       const response = await fetch("/api/send-form", {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      const resData = await response.json();
 
+      const resData = await response.json();
       if (!response.ok) {
         throw new Error(resData.message);
       }
 
-      toast.success(resData.message);
+      const adminEmail = resData.email;
+
+      setCookie("adminEmail", adminEmail);
+      setCookie("formId", resData.form.id);
+
+      setAdminEmail(adminEmail);
+      setFormId(resData.form.id);
+
+      openModal();
+
+      toast.success(`${resData.message}`);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(`${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +176,26 @@ function FormGenerator() {
           >
             {isLoading ? <Loader width="w-4" height="h-4" /> : "Send"}
           </button>
+          {isModalOpen && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="bg-indigo-800 relative text-white p-6 rounded shadow-lg w-1/2">
+                <button
+                  className="absolute top-0 w-[40px]  h-[40px] z-50 right-2 cursor-pointer "
+                  onClick={closeModal}
+                >
+                  <X />
+                </button>
+                <p className="mb-4">
+                  This is a modal content. Copy the link below to share the
+                  google form
+                </p>
+                <p>{`${window.location.href.replace(
+                  pathname,
+                  ""
+                )}/fill-form/${adminEmail}/${formId}`}</p>
+              </div>
+            </div>
+          )}
         </nav>
       </header>
 
@@ -192,7 +232,7 @@ function FormGenerator() {
         </div>
         <div className="absolute left-[100%] h-full mx-2 top-0 flex items-center">
           <button
-            onClick={() => addQuestion("", "radio", null)}
+            onClick={() => addQuestion("", "radio")}
             className="bg-white w-[50px] h-[50px] rounded-full   text-center     text-4xl   p-0"
           >
             +
@@ -220,8 +260,9 @@ function FormGenerator() {
                   id="inputType"
                   className="appearance-none border cursor-pointer focus:outline-none basis-1/3 border-gray-400 p-2 rounded"
                   onChange={(e) => changeTypeOfQuestion(questionIndex, e)}
+                  defaultValue={"radio"}
                 >
-                  <option className="text-bold option" selected value="radio">
+                  <option className="text-bold option" value="radio">
                     Radio
                   </option>
                   <option value="text">Text</option>
@@ -230,7 +271,7 @@ function FormGenerator() {
                 </select>
               </div>
               {question.options.map((option, index) => (
-                <div className="flex my-4 items-center ">
+                <div key={index} className="flex my-4 items-center ">
                   {question.type === "text" ? (
                     <Input
                       className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
@@ -269,29 +310,6 @@ function FormGenerator() {
                     </>
                   )}
 
-                  {/* 
-                  {question.type === "text" ? (
-                    <Input
-                      className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
-                      type="text"
-                      placeholder="Enter your short answer here.."
-                    />
-                  ) : (
-                    <>
-                      <Input
-                        className="text-gray-500"
-                        type={question.type}
-                        value={option}
-                        name={question.title}
-                        placeholder=""
-                      />
-                      <Input
-                        className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
-                        type="text"
-                        placeholder={`${option} ${index + 1}`}
-                      />
-                    </>
-                  )} */}
                   {question.type === "text" ? null : (
                     <button
                       onClick={() => filterOptions(questionIndex, index)}
@@ -334,29 +352,6 @@ function FormGenerator() {
           ))}
         </>
       ) : null}
-
-      {/* <div className="px-8">
-        <button
-          onClick={() => add("text")}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add Text Field
-        </button>
-        <button
-          onClick={() => add("select")}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Add Select Field
-        </button>
-      </div>
-      <div className="mt-4 px-8">
-        {formFields.map((field, index) => (
-          <div key={index} className="mb-4">
-            {field.type === "text" && <TextInput />}
-            {field.type === "select" && <SelectInput />}
-          </div>
-        ))}
-      </div> */}
     </div>
   );
 }

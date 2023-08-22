@@ -46,7 +46,7 @@ const Login = () => {
 
       router.push("/create-form");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(`${error.message}`);
     } finally {
       setIsLoading(false);
     }
