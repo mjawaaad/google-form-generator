@@ -7,12 +7,15 @@ import "@/app/globals.css";
 import Switch from "@mui/material/Switch";
 import { FormControlLabel } from "@mui/material";
 import { Trash2, Copy, X, CheckSquare } from "lucide-react";
-import { toast } from "react-toastify";
 import Loader from "@/components/shared/Loader";
 import { usePathname } from "next/navigation";
-import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { setCookie } from "cookies-next";
+import Link from "next/link";
+import "react-toastify/dist/ReactToastify.css";
+
 import dotenv from "dotenv";
+
 export interface IQuestion {
   title: string;
   type: string;
@@ -65,6 +68,13 @@ function FormGenerator() {
     setQuestions([...questions, { title, type, options }]);
   };
 
+  const deleteQuestion = (questionTitle: string) => {
+    setQuestions((prevQuestions) => {
+      return prevQuestions.filter(
+        (question) => question.title !== questionTitle
+      );
+    });
+  };
   //Add option to your question
   const addOptionToQuestion = (questionIndex: number, newOption: string) => {
     setQuestions((prevQuestions) => {
@@ -176,6 +186,13 @@ function FormGenerator() {
           >
             {isLoading ? <Loader width="w-4" height="h-4" /> : "Send"}
           </button>
+
+          <Link
+            className="text-indigo-500 text-xl"
+            href={`/get-form-responses/${formId}`}
+          >
+            Responses
+          </Link>
           {isModalOpen && (
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <div className="bg-indigo-800 relative text-white p-6 rounded shadow-lg w-1/2">
@@ -337,15 +354,9 @@ function FormGenerator() {
                   <button>
                     <Copy />
                   </button>
-                  <button>
+                  <button onClick={() => deleteQuestion(question.title)}>
                     <Trash2 />{" "}
                   </button>
-                  <div className="border-l-[1px] border-gray-500 mx-4"></div>
-                  <FormControlLabel
-                    required
-                    control={<Switch />}
-                    label="Required"
-                  />
                 </div>
               </div>
             </div>

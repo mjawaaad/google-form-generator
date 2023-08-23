@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCookies, getCookie, setCookie, deleteCookie } from "cookies-next";
 import { db } from "@/lib/drizzle";
 cookies;
 import { QuestionsTable } from "@/lib/schema/questionSchema";

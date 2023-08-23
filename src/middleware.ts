@@ -11,11 +11,11 @@ export async function middleware(request: NextRequest) {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
   const url = request.nextUrl.clone();
-  url.pathname = "/sign-up";
+  url.pathname = "/login";
   if (!jwt) {
     return NextResponse.redirect(url);
   } else {
-    const { payload, protectedHeader } = await jose.jwtVerify(jwt, secret);
+    const { payload } = await jose.jwtVerify(jwt, secret);
     const headers = new Headers(request.headers);
     headers.set("user", JSON.stringify(payload.email));
 

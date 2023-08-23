@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: "Successfully Sent",
+      message: "Form created successfully!",
       email: payload.email,
       form,
     });

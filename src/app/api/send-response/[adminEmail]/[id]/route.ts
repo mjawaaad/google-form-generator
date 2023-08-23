@@ -8,9 +8,14 @@ export async function POST(
 ) {
   const userResponse: { [x: string]: string } = await request.json();
   const userEmail = userResponse.email;
+
   try {
     if (!userResponse) {
       throw new Error("Please answer all the questions");
+    }
+
+    if (!userEmail) {
+      throw new Error("Please enter email!");
     }
 
     Object.entries(userResponse).map(async ([question, answer]) => {
@@ -21,7 +26,6 @@ export async function POST(
         adminEmail: params.adminEmail,
         formId: Number(params.id),
       };
-      console.log(response);
       const responsesFromDB = await db
         .insert(ResponsesTable)
         .values(response)

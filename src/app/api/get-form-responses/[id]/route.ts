@@ -13,7 +13,6 @@ export async function GET(
       .select()
       .from(ResponsesTable)
       .where(eq(ResponsesTable.formId, Number(params.id)));
-    console.log(responses);
     if (!responses) {
       throw new Error("Internal Server Error");
     }

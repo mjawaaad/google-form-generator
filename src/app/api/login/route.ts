@@ -48,7 +48,7 @@ export const POST = async (request: NextRequest) => {
         httpOnly: true,
       });
 
-      return NextResponse.json({ message: "Login success" });
+      return NextResponse.json({ message: "Logged in  successfully!" });
     }
   } catch (error: any) {
     return NextResponse.json(

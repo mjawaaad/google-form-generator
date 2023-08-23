@@ -2,11 +2,14 @@ import { Response } from "@/lib/schema/answerResponses";
 import React from "react";
 
 const GetResponses = async ({ params }: { params: { id: string } }) => {
-  const response = await fetch(
-    `http://localhost:3000/api/get-form-responses/${params.id}`
-  );
+  const path = process.env.WEB_URL;
+
+  const response = await fetch(`${path}/api/get-form-responses/${params.id}`, {
+    cache: "no-store",
+  });
   const data = await response.json();
   const formResponses: Response[] = data.responses;
+
   return (
     <div className="container mx-auto py-10 bg-gray-200 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">User Responses</h1>
@@ -26,21 +29,29 @@ const GetResponses = async ({ params }: { params: { id: string } }) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {formResponses.map((response, index) => (
-              <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{response.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {response.question}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{response.answer}</div>
-                </td>
-              </tr>
-            ))}
+            {formResponses.length ? (
+              formResponses.map((response, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {response.email}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {response.question}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {response.answer}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <h1>No Reponses Yet! </h1>
+            )}
           </tbody>
         </table>
       </div>

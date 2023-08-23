@@ -8,7 +8,7 @@ export default function Home() {
       <h2 className="text-md">Login to create your forms! </h2>
       <section className="absolute h-screen flex items-center justify-center ">
         <Link
-          href={"/login"}
+          href={"/create-form"}
           className="bg-indigo-700 text-white py-2 px-4 mx-2"
         >
           Create your Form

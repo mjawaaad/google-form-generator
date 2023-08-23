@@ -1,10 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loader from "@/components/shared/Loader";
 import { useRouter } from "next/navigation";
+import { getCookie } from "cookies-next";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const router = useRouter();
@@ -13,6 +14,12 @@ const Login = () => {
     password: "",
   });
 
+  useEffect(() => {
+    const cookie = getCookie("token");
+    if (!cookie) {
+      toast.error("Please login first!");
+    }
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,7 +49,7 @@ const Login = () => {
       }
       const data = await response.json();
 
-      toast.success(`${data.message} !`);
+      toast.success(`${data.message}`);
 
       router.push("/create-form");
     } catch (error: any) {
