@@ -110,10 +110,12 @@ const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
           <div className="bg-indigo-800 z-10 absolute top-0 left-[0px] rounded-b rounded-t w-[10px] h-full"></div>
 
           <div className="border-b-[1px] my-2">
-            <h1 className="text-4xl bold">{data?.formDetails.title}</h1>
+            {data && (
+              <h1 className="text-4xl bold">{data?.formDetails.title}</h1>
+            )}
           </div>
           <div className="border-b-[2px] border-b-indigo-800 my-2">
-            <p className="text-xl">{data?.formDetails.description}</p>
+            {data && <p className="text-xl">{data?.formDetails.description}</p>}
           </div>
 
           <div>
@@ -132,85 +134,88 @@ const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
           </div>
         </div>
         <form onSubmit={(e) => handleSubmit(e)} className="max-w-3xl mx-auto ">
-          {data?.questions.map((question, questionIndex) => {
-            return (
-              <div
-                className="w-full p-8 my-4   mx-auto bg-white w-full rounded shadow-md"
-                key={questionIndex}
-              >
-                <div className="w-full">
-                  <div className=" ">
-                    <h1 className="text-2xl">{question.title}</h1>
+          {data &&
+            data.questions.map((question, questionIndex) => {
+              return (
+                <div
+                  className="w-full p-8 my-4   mx-auto bg-white w-full rounded shadow-md"
+                  key={questionIndex}
+                >
+                  <div className="w-full">
+                    <div className=" ">
+                      <h1 className="text-2xl">{question.title}</h1>
+                    </div>
+                  </div>
+                  <div className="my-4">
+                    {question.type === "text" ? (
+                      <Input
+                        className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
+                        type="text"
+                        placeholder="Enter your short answer here.."
+                        handleChange={(e) => handleChange(question.title, e)}
+                      />
+                    ) : question.type === "dropdown" ? (
+                      <div>
+                        {question.options.map((option, index) => (
+                          <p key={index}>
+                            {index + 1}. {option}
+                          </p>
+                        ))}
+                        {/* Render the select element after iterating options */}
+                        <select
+                          onChange={(e) => handleChange(question.title, e)}
+                          className="border-2 mx-2 w-1/3 border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
+                        >
+                          {question.options.map((option, index) => (
+                            <option key={index} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      question.options.map((option, index) => (
+                        <div key={index} className="flex items-center">
+                          {question.type === "checkbox" ? (
+                            <>
+                              <input
+                                className="text-gray-500 w-[20px] h-[20px]"
+                                type="checkbox"
+                                value={option}
+                                name={question.title}
+                                placeholder=""
+                                onChange={(e) =>
+                                  handleCheckBoxChange(question.title, e)
+                                }
+                              />
+                              <label className="mx-6 text-md" htmlFor="">
+                                {option}
+                              </label>
+                            </>
+                          ) : (
+                            <>
+                              <input
+                                className="text-gray-500 w-[20px] h-[20px]"
+                                type={question.type}
+                                value={option}
+                                name={question.title}
+                                placeholder=""
+                                onChange={(e) =>
+                                  handleChange(question.title, e)
+                                }
+                              />
+                              <label className="mx-6 text-md" htmlFor="">
+                                {option}
+                              </label>
+                            </>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-                <div className="my-4">
-                  {question.type === "text" ? (
-                    <Input
-                      className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
-                      type="text"
-                      placeholder="Enter your short answer here.."
-                      handleChange={(e) => handleChange(question.title, e)}
-                    />
-                  ) : question.type === "dropdown" ? (
-                    <div>
-                      {question.options.map((option, index) => (
-                        <p key={index}>
-                          {index + 1}. {option}
-                        </p>
-                      ))}
-                      {/* Render the select element after iterating options */}
-                      <select
-                        onChange={(e) => handleChange(question.title, e)}
-                        className="border-2 mx-2 w-1/3 border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
-                      >
-                        {question.options.map((option, index) => (
-                          <option key={index} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : (
-                    question.options.map((option, index) => (
-                      <div key={index} className="flex items-center">
-                        {question.type === "checkbox" ? (
-                          <>
-                            <input
-                              className="text-gray-500 w-[20px] h-[20px]"
-                              type="checkbox"
-                              value={option}
-                              name={question.title}
-                              placeholder=""
-                              onChange={(e) =>
-                                handleCheckBoxChange(question.title, e)
-                              }
-                            />
-                            <label className="mx-6 text-md" htmlFor="">
-                              {option}
-                            </label>
-                          </>
-                        ) : (
-                          <>
-                            <input
-                              className="text-gray-500 w-[20px] h-[20px]"
-                              type={question.type}
-                              value={option}
-                              name={question.title}
-                              placeholder=""
-                              onChange={(e) => handleChange(question.title, e)}
-                            />
-                            <label className="mx-6 text-md" htmlFor="">
-                              {option}
-                            </label>
-                          </>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
           <button
             type="submit"
             className="bg-indigo-800 text-white text-xl rounded py-2 px-4"
