@@ -26,15 +26,13 @@ const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
         );
         const json = await response.json();
         setData(json);
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) {}
     }
 
     fetchData(); // Call the fetchData function
   }, []);
 
+  console.log(data);
   const handleChange = (questionTitle: string, e: any) => {
     const { value } = e.target;
 
@@ -111,11 +109,11 @@ const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
 
           <div className="border-b-[1px] my-2">
             {data && (
-              <h1 className="text-4xl bold">{data?.formDetails.title}</h1>
+              <h1 className="text-4xl bold">{data.formDetails.title}</h1>
             )}
           </div>
           <div className="border-b-[2px] border-b-indigo-800 my-2">
-            {data && <p className="text-xl">{data?.formDetails.description}</p>}
+            {data && <p className="text-xl">{data.formDetails.description}</p>}
           </div>
 
           <div>
