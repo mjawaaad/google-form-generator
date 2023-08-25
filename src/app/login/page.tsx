@@ -1,118 +1,229 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import "react-toastify/dist/ReactToastify.css";
 import Loader from "@/components/shared/Loader";
-import { useRouter } from "next/navigation";
-import { getCookie } from "cookies-next";
+import React, { useEffect, useState } from "react";
+import { IFormData } from "../../../api/send-form/route";
+import Input from "@/components/shared/TextInput";
+import FillFormLayout from "../../layout";
+import "react-toastify/dist/ReactToastify.css";
+
 import { toast } from "react-toastify";
+const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
+  const [data, setData] = useState<IFormData | null>(null);
 
-const Login = () => {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [loading, setLoading] = useState(true);
+  const [isFormSubmitting, setFormSubmitting] = useState(false);
+  const [formAnswers, setFormAnswers] = useState<{
+    [question: string]: string;
+  } | null>();
 
+  const adminEmail = decodeURIComponent(params.adminEmail);
   useEffect(() => {
-    const cookie = getCookie("token");
-    if (!cookie) {
-      toast.error("Please login first!");
+    // Function to fetch data asynchronously
+    async function fetchData() {
+      try {
+        const response = await fetch(
+          `../../api/get-form-data/${adminEmail}/${params.id}`
+        );
+        const json = await response.json();
+        setData(json);
+      } catch (error) {}
     }
-  }, []);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
+    fetchData(); // Call the fetchData function
+  }, []);
+
+  console.log(data);
+  const handleChange = (questionTitle: string, e: any) => {
+    const { value } = e.target;
+
+    setFormAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [questionTitle]: value,
     }));
   };
 
-  const handleTogglePassword = () => {
-    setShowPassword((prevShowPassword) => !prevShowPassword);
+  const handleCheckBoxChange = (questionTitle: string, e: any) => {
+    const { value, checked } = e.target;
+
+    setFormAnswers((prevAnswers) => {
+      if (checked) {
+        // If checked, append the value to the existing string with a separator
+        return {
+          ...prevAnswers,
+          [questionTitle]: prevAnswers![questionTitle]
+            ? `${prevAnswers![questionTitle]}, ${value}`
+            : value,
+        };
+      } else {
+        // If unchecked, remove the value from the string
+        return {
+          ...prevAnswers,
+          [questionTitle]: prevAnswers![questionTitle]
+            ?.replace(`${value}, `, "")
+            .replace(`${value}`, ""),
+        };
+      }
+    });
   };
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
-      setIsLoading(true);
-      const response = await fetch("/api/login", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
+      setFormSubmitting(true);
+
+      const response = await fetch(
+        `/api/send-response/${adminEmail}/${params.id}`,
+        {
+          body: JSON.stringify(formAnswers),
+          method: "POST",
+        }
+      );
+      const resData = await response.json();
+
       if (!response.ok) {
-        const resData = await response.json();
         throw new Error(resData.message);
       }
-      const data = await response.json();
-
-      toast.success(`${data.message}`);
-
-      router.push("/create-form");
-      setIsLoading(false);
+      toast.success(`${resData.message}`);
     } catch (error: any) {
       toast.error(`${error.message}`);
-      setIsLoading(false);
+    } finally {
+      setFormSubmitting(false);
     }
-
-    // You can add your registration logic here
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <Loader width="w-4" height="h-4" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl font-semibold mb-4">Login</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
+    <FillFormLayout>
+      <div className=" min-h-screen bg-gray-200 py-10">
+        <div className="max-w-3xl mx-auto  rounded p-10  my-4 bg-white shadow-md w-full relative">
+          <div className="bg-blue-600 z-20 absolute top-0 left-0 rounded-t w-full h-[10px]"></div>
+          <div className="bg-indigo-800 z-10 absolute top-0 left-[0px] rounded-b rounded-t w-[10px] h-full"></div>
+
+          <div className="border-b-[1px] my-2">
+            {data && (
+              <h1 className="text-4xl bold">{data.formDetails.title}</h1>
+            )}
           </div>
-          <div className="mb-4 ">
-            <label className="block mb-2 text-sm font-medium">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className=" w-full p-2 border rounded "
-                required
-              />
-              <button
-                type="button"
-                className="absolute top-2 right-2"
-                onClick={handleTogglePassword}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
+          <div className="border-b-[2px] border-b-indigo-800 my-2">
+            {data && <p className="text-xl">{data.formDetails.description}</p>}
           </div>
 
+          <div>
+            <h1 className="text-xl italic">
+              Email is required to submit the form
+            </h1>
+            <input
+              required
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Add your email"
+              className="outline-none p-4 text-md"
+              onChange={(e) => handleChange(e.target.name, e)}
+            />
+          </div>
+        </div>
+        <form onSubmit={(e) => handleSubmit(e)} className="max-w-3xl mx-auto ">
+          {data &&
+            data.questions.map((question, questionIndex) => {
+              return (
+                <div
+                  className="w-full p-8 my-4   mx-auto bg-white w-full rounded shadow-md"
+                  key={questionIndex}
+                >
+                  <div className="w-full">
+                    <div className=" ">
+                      <h1 className="text-2xl">{question.title}</h1>
+                    </div>
+                  </div>
+                  <div className="my-4">
+                    {question.type === "text" ? (
+                      <Input
+                        className="border-2 mx-2 w-full border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
+                        type="text"
+                        placeholder="Enter your short answer here.."
+                        handleChange={(e) => handleChange(question.title, e)}
+                      />
+                    ) : question.type === "dropdown" ? (
+                      <div>
+                        {question.options.map((option, index) => (
+                          <p key={index}>
+                            {index + 1}. {option}
+                          </p>
+                        ))}
+                        {/* Render the select element after iterating options */}
+                        <select
+                          onChange={(e) => handleChange(question.title, e)}
+                          className="border-2 mx-2 w-1/3 border-transparent p-2 transition rounded focus:border-b-indigo-800 focus:outline-none"
+                        >
+                          {question.options.map((option, index) => (
+                            <option key={index} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      question.options.map((option, index) => (
+                        <div key={index} className="flex items-center">
+                          {question.type === "checkbox" ? (
+                            <>
+                              <input
+                                className="text-gray-500 w-[20px] h-[20px]"
+                                type="checkbox"
+                                value={option}
+                                name={question.title}
+                                placeholder=""
+                                onChange={(e) =>
+                                  handleCheckBoxChange(question.title, e)
+                                }
+                              />
+                              <label className="mx-6 text-md" htmlFor="">
+                                {option}
+                              </label>
+                            </>
+                          ) : (
+                            <>
+                              <input
+                                className="text-gray-500 w-[20px] h-[20px]"
+                                type={question.type}
+                                value={option}
+                                name={question.title}
+                                placeholder=""
+                                onChange={(e) =>
+                                  handleChange(question.title, e)
+                                }
+                              />
+                              <label className="mx-6 text-md" htmlFor="">
+                                {option}
+                              </label>
+                            </>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            className="bg-indigo-800 text-white text-xl rounded py-2 px-4"
           >
-            {isLoading ? <Loader width="w-4" height="h-4" /> : "Login"}
+            {isFormSubmitting ? <Loader width="w-4" height="h-4" /> : "Submit"}
           </button>
-          <div className=" my-2">
-            <h3 className="text-sm text-center">
-              Don't have an account? <Link href={"/sign-up"}>Signup</Link>
-            </h3>
-          </div>
         </form>
       </div>
-    </div>
+    </FillFormLayout>
   );
 };
 
-export default Login;
+export default Form;
