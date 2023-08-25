@@ -52,9 +52,9 @@ const Login = () => {
       toast.success(`${data.message}`);
 
       router.push("/create-form");
+      setIsLoading(false);
     } catch (error: any) {
       toast.error(`${error.message}`);
-    } finally {
       setIsLoading(false);
     }
 
