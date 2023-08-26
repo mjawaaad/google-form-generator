@@ -26,7 +26,11 @@ const Form = ({ params }: { params: { adminEmail: string; id: string } }) => {
         );
         const json = await response.json();
         setData(json);
-      } catch (error) {}
+      } catch (error: any) {
+        toast.error(`${error.message}`);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchData(); // Call the fetchData function
