@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         .insert(QuestionsTable)
         .values(insertQuestion)
         .returning();
+      console.log(responses)
       return responses;
     });
 
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       message: "Form created successfully!",
       email: payload.email,
       form,
+      questionsFromDB
     });
   } catch (error: any) {
     return NextResponse.json({
