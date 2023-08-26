@@ -39,14 +39,16 @@ export async function POST(request: NextRequest) {
 
     const form = forms[forms.length - 1];
 
-    const questionsFromDB = questions.map(async (question) => {
+    const questionsFromDB = questions.map(async (question,index) => {
       let insertQuestion: NewQuestion;
       insertQuestion = { adminEmail: userEmail, ...question, formId: form.id };
       const responses = await db
         .insert(QuestionsTable)
         .values(insertQuestion)
         .returning();
-      console.log(responses)
+      if (!responses[index]) {
+        throw new Error();
+      }
       return responses;
     });
 
